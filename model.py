@@ -121,6 +121,14 @@ class Model:
         # happening, else return 0.0 (i.e. zero probability of reaching s2 from s1 using action a).
         return next_states.get(s2, 0.0)
 
+    def next_state(self, s: State, a: Actions):
+        dic = self._possible_next_states_from_state_action(s, a)
+        prob = list(dic.values())
+        states = list(dic.keys())
+        return int(np.random.choice(states, size=1, p=prob))
+        # probs = [self.transition_probability(s, s2, a) for s2 in self.states]
+        # return np.random.choice(range(self.num_states), p=probs)
+    
     def _possible_next_states_from_state_action(self, s: State, a: Actions):
         """
         Returns the possible next states (with their probability) that can occur when

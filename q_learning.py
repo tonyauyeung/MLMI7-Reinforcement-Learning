@@ -4,16 +4,15 @@ import numpy as np
 from numpy.typing import NDArray
 
 from model import Model, Actions
-np.random.seed(2024)
 
 
 def q_learning(
     model: Model,
     maxit: int = 100,
-    maxit_episode: int = 20,
+    n_episode: int = 500,
     epsilon: float = 0.1,
     alpha: float = 1.,
-) -> Tuple[NDArray, NDArray]:
+) -> Tuple[NDArray]:
     """
     Q-learning
         maxit: int, max iteration of SARSA, i.e. number of episodes
@@ -21,26 +20,29 @@ def q_learning(
         epsilon: float, the exploration parameter
         alpha: float, the learning rate
     """
-    # Q = np.random.randn(model.num_states, len(Actions))
     Q = np.zeros((model.num_states, len(Actions)))
-    Q[-1, :] = 0
     V = np.zeros((model.num_states,))
     pi = np.zeros((model.num_states,))
+    rewards = np.zeros((n_episode, ))
 
-    for _ in tqdm(range(maxit)):
-        s = model.states[np.random.randint(0, model.num_states - 1)]
-        for _ in range(maxit_episode):
-            if s is model.goal_state:
-                break                
+    for i in range(n_episode):
+        s = model.start_state
+        for _ in range(maxit):          
             coin = np.random.choice([0, 1], size=1, p=[1 - epsilon, epsilon])
-            a_idx = np.random.randint(0, len(Actions)) if coin else np.argmax(Q[s, :])
-            a = Actions(a_idx)
+            a = np.random.randint(0, len(Actions)) if coin else np.argmax(Q[s, :])
             r = model.reward(s, a)
-            s_ = model.cell2state(model._result_action(model.state2cell(s), a))
-            Q[s, a_idx] = Q[s, a_idx] + alpha * (r + model.gamma * np.max(Q[s_, :]) - Q[s, a_idx])
+            rewards[i] += r
+            s_ = model.next_state(s, a)
+            Q[s, a] = Q[s, a] + alpha * (r + model.gamma * np.max(Q[s_, :]) - Q[s, a])
             s = s_
-    
-    for s in model.states:
-        pi[s] = Actions(np.argmax(Q[s, :]))
-        V[s] = np.max(Q[s, :])
-    return V, pi
+            if s == model.goal_state:
+                break      
+
+    pi = np.argmax(Q, axis=1)
+    V = np.max(Q, axis=1)
+    return V, pi, rewards
+
+# from world_config import cliff_world
+# model = Model(cliff_world)
+# # V_sarsa, pi_sarsa, rewards_sarsa = sarsa(model, maxit=500)
+# V_q_learning, pi_q_learning, rewards_q_learning = q_learning(model)

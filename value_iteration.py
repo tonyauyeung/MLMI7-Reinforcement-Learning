@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Callable, Tuple, List
 from tqdm import tqdm
 import numpy as np
 from numpy.typing import NDArray
@@ -8,7 +8,7 @@ def value_iteration(
     model: Model, 
     maxit: int = 100, 
     threshold: float = 0.01
-) -> Tuple[NDArray, NDArray]:
+) -> Tuple[NDArray, NDArray, List[NDArray]]:
     """
     Synchronise Value Iteration, SyncVI
         maxit: int, max iteration of VI
@@ -16,6 +16,7 @@ def value_iteration(
     """
     V = np.zeros((model.num_states,))
     pi = np.zeros((model.num_states,))
+    history = [np.copy(V)]
 
     def compute_value(s, a, reward: Callable):
         return np.sum(
@@ -36,6 +37,7 @@ def value_iteration(
             V_new[s] = max(values)
         delta = np.max(np.abs(V_new - V))
         V = np.copy(V_new)
+        history.append(np.copy(V))
         if delta <= threshold:
             break
     for s in model.states:
@@ -43,14 +45,14 @@ def value_iteration(
             [compute_value(s, a, model.reward) for a in Actions]
         )
         pi[s] = Actions(action_index)
-    return V, pi
+    return V, pi, history
 
 
 def value_iteration_async(
     model: Model, 
     maxit: int = 100, 
     threshold: float = 0.01
-) -> Tuple[NDArray, NDArray]:
+) -> Tuple[NDArray, NDArray, List[NDArray]]:
     """
     Asynchronise Value Iteration, ASyncVI
         maxit: int, max iteration of VI
@@ -58,7 +60,7 @@ def value_iteration_async(
     """
     V = np.zeros((model.num_states,))
     pi = np.zeros((model.num_states,))
-
+    history = [np.copy(V)]
     def compute_value(s, a, reward: Callable):
         return np.sum(
             [
@@ -78,6 +80,7 @@ def value_iteration_async(
             delta = max(delta, np.abs(V[s] - max(values)))
             # update value function without storing the previous value
             V[s] = max(values)
+        history.append(np.copy(V))
         if delta <= threshold:
             break
     for s in model.states:
@@ -85,4 +88,4 @@ def value_iteration_async(
             [compute_value(s, a, model.reward) for a in Actions]
         )
         pi[s] = Actions(action_index)
-    return V, pi
+    return V, pi, history
