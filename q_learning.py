@@ -36,7 +36,7 @@ def q_learning(
             Q[s, a] = Q[s, a] + alpha * (r + model.gamma * np.max(Q[s_, :]) - Q[s, a])
             s = s_
             if s == model.goal_state:
-                break      
+                break
 
     pi = np.argmax(Q, axis=1)
     V = np.max(Q, axis=1)

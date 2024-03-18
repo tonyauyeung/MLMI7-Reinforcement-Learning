@@ -11,6 +11,7 @@ def policy_iteration(model: Model, maxit: int = 100):
 
     V = np.zeros((model.num_states,))
     pi = np.zeros((model.num_states,))
+    history = [np.copy(pi)]
 
     def compute_value(s, a, reward: Callable):
         return np.sum(
@@ -38,11 +39,12 @@ def policy_iteration(model: Model, maxit: int = 100):
             policy_evaluation()
         pi_old = np.copy(pi)
         policy_improvement()
+        history.append(np.copy(pi))
         if all(pi_old == pi):
             print("breaking")
             break
 
-    return V, pi
+    return V, pi, history
 
 
 if __name__ == "__main__":
