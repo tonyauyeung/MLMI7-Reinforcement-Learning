@@ -61,8 +61,7 @@ def expected_sarsa(
     V = np.zeros((model.num_states,))
     pi = np.zeros((model.num_states,))
     rewards = np.zeros((n_episode, ))
-    history = [np.copy(Q)]
-
+    iters = np.zeros((n_episode, ))
     for i in range(n_episode):
         s = model.start_state
         coin = np.random.choice([0, 1], size=1, p=[1 - epsilon, epsilon])
@@ -81,10 +80,10 @@ def expected_sarsa(
             Q[s, a] = Q[s, a] + alpha * (r + model.gamma * expected_q - Q[s, a])
             
             s, a = s_, a_
+            iters[i] += 1
             if s == model.goal_state:
                 break         
-        history.append(np.copy(Q))
     
     pi = np.argmax(Q, axis=1)
     V = np.max(Q, axis=1)
-    return V, pi, rewards, history
+    return V, pi, rewards, iters

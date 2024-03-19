@@ -24,7 +24,7 @@ def q_learning(
     V = np.zeros((model.num_states,))
     pi = np.zeros((model.num_states,))
     rewards = np.zeros((n_episode, ))
-
+    iters = np.zeros((n_episode, ))
     for i in range(n_episode):
         s = model.start_state
         for _ in range(maxit):          
@@ -35,12 +35,13 @@ def q_learning(
             s_ = model.next_state(s, a)
             Q[s, a] = Q[s, a] + alpha * (r + model.gamma * np.max(Q[s_, :]) - Q[s, a])
             s = s_
+            iters[i] += 1
             if s == model.goal_state:
                 break
 
     pi = np.argmax(Q, axis=1)
     V = np.max(Q, axis=1)
-    return V, pi, rewards
+    return V, pi, rewards, iters
 
 # from world_config import cliff_world
 # model = Model(cliff_world)
