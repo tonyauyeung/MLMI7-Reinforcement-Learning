@@ -27,7 +27,7 @@ def q_learning(
     iters = np.zeros((n_episode, ))
     for i in range(n_episode):
         s = model.start_state
-        for _ in range(maxit):          
+        for _ in range(maxit):
             coin = np.random.choice([0, 1], size=1, p=[1 - epsilon, epsilon])
             a = np.random.randint(0, len(Actions)) if coin else np.argmax(Q[s, :])
             r = model.reward(s, a)
